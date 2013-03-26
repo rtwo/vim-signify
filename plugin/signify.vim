@@ -115,11 +115,11 @@ augroup signify
   endif
 
   if !has('gui_win32')
-    autocmd FocusGained * call s:start(resolve(expand('<afile>:p')))
+    autocmd FocusGained * call s:start(resolve(expand('<afile>:.')))
   endif
 
   autocmd VimEnter,ColorScheme  * call s:colors_set()
-  autocmd BufEnter              * let s:file = resolve(expand('<afile>:p'))
+  autocmd BufEnter              * let s:file = resolve(expand('<afile>:.'))
   autocmd BufEnter,BufWritePost * call s:start(s:file)
 augroup END
 
@@ -259,16 +259,9 @@ endfunction
 "  Functions -> s:repo_get_diff_git  {{{2
 function! s:repo_get_diff_git(path) abort
   if executable('git')
-    let orig_dir = fnameescape(getcwd())
-    execute 'cd '. fnameescape(fnamemodify(a:path, ':h'))
-    let diff = system('git diff --no-ext-diff -U0 -- '. fnameescape(a:path) .' | grep --color=never "^@@ "')
-    if !v:shell_error
-      execute 'cd '. orig_dir
-      return diff
-    endif
-    execute 'cd '. orig_dir
+    let diff = system('git diff --no-ext-diff -U0 -- '. fnameescape(a:path) .' | tee /tmp/foo | grep --color=never "^@@ "')
+    return v:shell_error ? '' : diff
   endif
-  return ''
 endfunction
 
 "  Functions -> s:repo_get_diff_hg  {{{2
@@ -313,9 +306,7 @@ endfunction
 "  Functions -> s:repo_get_diff_cvs  {{{2
 function! s:repo_get_diff_cvs(path) abort
   if executable('cvs')
-    let realFileName = fnamemodify(a:path, ':t')
-    let dir = fnamemodify(a:path, ":p:h")
-    let diff = system('cd '.dir.' && cvs diff -U0 -- '. realFileName .' 2>&1 | grep --color=never "^@@ "')
+    let diff = system('cvs diff -U0 -- '. a:path .' 2>&1 | grep --color=never "^@@ "')
     return v:shell_error ? '' : diff
   endif
 endfunction
