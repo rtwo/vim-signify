@@ -145,7 +145,8 @@ endfunction
 " Function: #get_diff_cvs {{{1
 function! sy#repo#get_diff_cvs() abort
   let diffoptions = has_key(g:signify_diffoptions, 'cvs') ? g:signify_diffoptions.cvs : ''
-  let diff = system('cd '. sy#util#escape(fnamemodify(b:sy.path, ':h')) .' && cvs diff -U0 '. diffoptions .' -- '. sy#util#escape(fnamemodify(b:sy.path, ':t')))
+  let cvsoptions = exists('g:signify_cvsoptions') ? g:signify_cvsoptions : ''
+  let diff = system('cd '. sy#util#escape(fnamemodify(b:sy.path, ':h')) .' && cvs '.cvsoptions.' diff -U0 '. diffoptions .' -- '. sy#util#escape(fnamemodify(b:sy.path, ':t')))
   return ((v:shell_error == 1) && (diff =~ '+++')) ? [1, diff] : [0, '']
 endfunction
 
